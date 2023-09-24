@@ -16,12 +16,25 @@ db.init_app(app)
 
 api = Api(app)
 
-class Plants(Resource):
-    pass
+@app.route('/plants', methods=['GET'])
+def get_plants():
+    plants = Plant.query.all()
+    return jsonify([plant.as_dict() for plant in plants]), 200
 
-class PlantByID(Resource):
-    pass
-        
+@app.route('/plants/<int:id>', methods=['GET'])
+def get_plant(id):
+    plant = Plant.query.get_or_404(id)
+    return jsonify(plant.as_dict()), 200
 
-if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+@app.route('/plants', methods=['POST'])
+def create_plant():
+    data = request.get_json()
+    new_plant = Plant(
+        name=data['name'],
+        image=data['image'],
+        price=data['price']
+    )
+    db.session.add(new_plant)
+    db.session.commit()
+    return jsonify(new_plant.as_dict()), 201
+
